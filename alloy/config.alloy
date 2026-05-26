@@ -1,0 +1,49 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. Куда отправлять профили
+// ─────────────────────────────────────────────────────────────────────────────
+pyroscope.write "local" {
+  endpoint {
+    url = "http://pyroscope:4040"
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. Скрейп /debug/pprof/* вашего приложения
+//    Замените __address__ на хост:порт вашего сервиса.
+//    Если сервис на хосте — используйте host.docker.internal:<PORT>
+//    Если сервис тоже в compose — используйте имя контейнера:<PORT>
+// ─────────────────────────────────────────────────────────────────────────────
+pyroscope.scrape "my_app" {
+  targets = [
+    {
+      "__address__"  = "host.docker.internal:8080",  // <-- поменяй порт
+      "service_name" = "my-go-service",
+    },
+    // Можно добавить сколько угодно инстансов:
+    // { "__address__" = "host.docker.internal:8081", "service_name" = "my-go-service-2" },
+  ]
+
+  forward_to = [pyroscope.write.local.receiver]
+
+  // Интервал сбора (по умолчанию 15s, для CPU профиль длится scrape_timeout)
+  scrape_interval = "15s"
+  scrape_timeout  = "10s"
+
+  profiling_config {
+    profile.process_cpu {
+      enabled = true
+    }
+    profile.memory {
+      enabled = true
+    }
+    profile.goroutine {
+      enabled = true
+    }
+    profile.mutex {
+      enabled = false  // включить если runtime.SetMutexProfileFraction > 0
+    }
+    profile.block {
+      enabled = false  // включить если runtime.SetBlockProfileRate > 0
+    }
+  }
+}
