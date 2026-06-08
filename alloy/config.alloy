@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 pyroscope.write "local" {
   endpoint {
-    url = "http://pyroscope:4040"
+    url = "http://localhost:4040"
   }
 }
 
@@ -16,7 +16,7 @@ pyroscope.write "local" {
 pyroscope.scrape "my_app" {
   targets = [
     {
-      "__address__"  = "host.docker.internal:8080",  // <-- поменяй порт
+      "__address__"  = "localhost:8080",  // <-- поменяй порт
       "service_name" = "my-go-service",
     },
     // Можно добавить сколько угодно инстансов:
@@ -26,8 +26,8 @@ pyroscope.scrape "my_app" {
   forward_to = [pyroscope.write.local.receiver]
 
   // Интервал сбора (по умолчанию 15s, для CPU профиль длится scrape_timeout)
-  scrape_interval = "15s"
-  scrape_timeout  = "10s"
+  scrape_interval = "25s"
+  scrape_timeout  = "15s"
 
   profiling_config {
     profile.process_cpu {
